@@ -47,7 +47,7 @@ const char *keywords[] = {"int", "main"};
 bool peek_and_check(char expected_char) {
   char next_char = fgetc(source);
   if (next_char != expected_char) {
-    if (!isspace(next_char)) {
+    if ((next_char != EOF) && !isspace(next_char)) {
       ungetc(next_char, source);
     }
     return false;
@@ -79,6 +79,7 @@ TokenType get_token(char *lexeme_buf) {
   switch (character) {
   case '<':
     if (peek_and_check('=')) {
+      strcat(lexeme_buf, "=");
       return LESS_EQUALS;
     } else {
       return LESS;
@@ -86,6 +87,7 @@ TokenType get_token(char *lexeme_buf) {
 
   case '>':
     if (peek_and_check('=')) {
+      strcat(lexeme_buf, "=");
       return GREATER_EQUALS;
     } else {
       return GREATER;
@@ -93,6 +95,7 @@ TokenType get_token(char *lexeme_buf) {
 
   case '+':
     if (peek_and_check('+')) {
+      strcat(lexeme_buf, "+");
       return INCREMENT;
     } else {
       return ADD;
@@ -100,6 +103,7 @@ TokenType get_token(char *lexeme_buf) {
 
   case '-':
     if (peek_and_check('-')) {
+      strcat(lexeme_buf, "-");
       return DECREMENT;
     } else {
       return SUB;
@@ -107,12 +111,14 @@ TokenType get_token(char *lexeme_buf) {
 
   case '=':
     if (peek_and_check('=')) {
+      strcat(lexeme_buf, "=");
       return EQUALS;
     } else {
       return ASSIGN;
     }
   case '!':
     if (peek_and_check('=')) {
+      strcat(lexeme_buf, "=");
       return NOT_EQUALS;
     } else {
       return NOT;
@@ -137,7 +143,7 @@ TokenType get_token(char *lexeme_buf) {
       }
       character = fgetc(source);
     } while (isalnum(character) || character == '_');
-    if (!isspace(character)) {
+    if ((character != EOF) && !isspace(character)) {
       ungetc(character, source);
     }
     lexeme_buf[i] = '\0';
@@ -146,12 +152,17 @@ TokenType get_token(char *lexeme_buf) {
     }
     return IDENTIFIER;
   } else if (isdigit(character)) {
+    int i = 0;
     do {
+      if (i < BUFSIZE - 1) {
+        lexeme_buf[i++] = character;
+      }
       character = fgetc(source);
     } while (isdigit(character));
-    if (!isspace(character)) {
+    if ((character != EOF) && !isspace(character)) {
       ungetc(character, source);
     }
+    lexeme_buf[i] = '\0';
     return NUMBER;
   } else {
     return UNKNOWN_TOKEN;
