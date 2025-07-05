@@ -46,8 +46,10 @@ const char *keywords[] = {"int", "main"};
 
 bool peek_and_check(char expected_char) {
   char next_char = fgetc(source);
-  if ((!isspace(next_char)) && (next_char != expected_char)) {
-    ungetc(next_char, source);
+  if (next_char != expected_char) {
+    if (!isspace(next_char)) {
+      ungetc(next_char, source);
+    }
     return false;
   }
   return true;
@@ -70,7 +72,7 @@ TokenType get_token(char *lexeme_buf) {
     character = fgetc(source);
   } while (isspace(character));
   if (character == EOF) {
-      return END_OF_FILE;
+    return END_OF_FILE;
   }
   lexeme_buf[0] = character;
   lexeme_buf[1] = '\0';
@@ -156,13 +158,18 @@ TokenType get_token(char *lexeme_buf) {
   }
 }
 
-int main() {
-  source = fopen("source.txt", "r");
+int main(int argc, char **argv) {
+  if (argc != 2) {
+    fprintf(stderr, "ERROR: Missing source filename as argument.\n");
+    return 1;
+  }
+  source = fopen(argv[1], "r");
   if (source) {
     TokenType current_token;
     char lexeme[BUFSIZE];
     while ((current_token = get_token(lexeme)) != END_OF_FILE) {
-      printf("Token: %-25s\t Lexeme: %-60s\n", token_types[current_token], lexeme);
+      printf("Token: %-25s\t Lexeme: %-60s\n", token_types[current_token],
+             lexeme);
     }
   } else {
     perror("Failed to open source file");
